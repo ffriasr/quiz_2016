@@ -35,22 +35,44 @@ exports.ownershipRequired = function(req, res, next){
 
 // GET /quizzes
 exports.index = function(req, res, next) {
-  if ("search" in req.query) {
-    models.Quiz.findAll({order: 'question ASC', where: {question: {$like: "%" + req.query.search + "%"}}})
-                      .then(function(quizzes){
-                        res.render('quizzes/index.ejs', { quizzes: quizzes});
-                      }).catch(function(error) {
-                        next(error);
-                      });
+
+  if ((req.params.format === "JSON" || req.params.format === "json")){
+    if ("search" in req.query) {
+        models.Quiz.findAll({order: 'question ASC', where: {question: {$like: "%" + req.query.search + "%"}}})
+                          .then(function(quizzes){
+                            res.json('quizzes/index.ejs', { quizzes: quizzes});
+                          }).catch(function(error) {
+                            next(error);
+                          });
+    }else{
+      models.Quiz.findAll()
+        .then(function(quizzes) {
+          res.json('quizzes/index.ejs', { quizzes: quizzes});
+        })
+        .catch(function(error) {
+          next(error);
+        });
+       }
   }else{
-  models.Quiz.findAll()
-    .then(function(quizzes) {
-      res.render('quizzes/index.ejs', { quizzes: quizzes});
-    })
-    .catch(function(error) {
-      next(error);
-    });
-   }
+    if ("search" in req.query) {
+        models.Quiz.findAll({order: 'question ASC', where: {question: {$like: "%" + req.query.search + "%"}}})
+                          .then(function(quizzes){
+                            res.render('quizzes/index.ejs', { quizzes: quizzes});
+                          }).catch(function(error) {
+                            next(error);
+                          });
+      }else{
+      models.Quiz.findAll()
+        .then(function(quizzes) {
+          res.render('quizzes/index.ejs', { quizzes: quizzes});
+        })
+        .catch(function(error) {
+          next(error);
+        });
+       }
+  }
+
+      
 	
 };
 
@@ -59,9 +81,14 @@ exports.show = function(req, res, next) {
 
 	var answer = req.query.answer || '';
 
-	res.render('quizzes/show', {quiz: req.quiz,
-								answer: answer});
-};
+    if (req.params.format === "JSON" || req.params.format === "json"){
+         res.json('quizzes/show', {quiz: req.quiz,
+                      answer: answer});
+       }else{
+         res.render('quizzes/show', {quiz: req.quiz,
+                     answer: answer});
+       }
+  };
 
 
 // GET /quizzes/:id/check
